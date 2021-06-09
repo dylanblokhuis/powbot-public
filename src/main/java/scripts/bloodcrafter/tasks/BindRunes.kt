@@ -19,6 +19,7 @@ class BindRunes(ctx: ClientContext) : Task<ClientContext>(ctx) {
             return Inventory.contains("Dark essence fragments")
                     && !Inventory.contains("Dark essence block")
                     && Main.fragmentsCharged
+                    && altarArea.contains(Main.player)
         }
 
         return Inventory.contains("Dark essence fragments")

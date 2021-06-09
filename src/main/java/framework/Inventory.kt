@@ -20,6 +20,19 @@ object Inventory {
         return item.size >= amount
     }
 
+    fun contains(id: Int, amount: Int? = null): Boolean {
+        if (amount == null) {
+            return ctx.inventory.toStream().id(id).first().valid()
+        }
+
+        val item = ctx.inventory.toStream().id(id).list()
+        if (item.isEmpty()) {
+            return false
+        }
+
+        return item.size >= amount
+    }
+
     fun contains(itemName: Pattern, amount: Int? = null): Boolean {
         if (amount == null) {
             return ctx.inventory.toStream().name(itemName).first().valid()

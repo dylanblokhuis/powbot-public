@@ -1,5 +1,6 @@
 package scripts.bloodcrafter
 
+import framework.Inventory
 import framework.Task
 import framework.antipattern.AntiPatternManager
 import framework.formatTime
@@ -9,10 +10,7 @@ import org.powerbot.script.*
 import org.powerbot.script.rt4.ClientContext
 import org.powerbot.script.rt4.Constants
 import org.powerbot.script.rt4.Player
-import scripts.bloodcrafter.tasks.BindRunes
-import scripts.bloodcrafter.tasks.ChiselBlocks
-import scripts.bloodcrafter.tasks.ConvertBlocks
-import scripts.bloodcrafter.tasks.MineBlocks
+import scripts.bloodcrafter.tasks.*
 import java.awt.Color
 import java.awt.Font
 import java.awt.Graphics
@@ -27,6 +25,7 @@ class Main : PollingScript<ClientContext>(), PaintListener {
     private var taskRepeated = 0
 
     companion object {
+        var isFragmentChecked = true
         var fragmentsCharged = false
         var player: Player = ClientContext.ctx().players.local()
         val darkAltarArea = arrayOf(
@@ -56,7 +55,8 @@ class Main : PollingScript<ClientContext>(), PaintListener {
             ctx.movement.running(true)
         }
 
-        if (ctx.chat.canContinue()) {
+        // CheckFragments needs a chat message, so it can't be skipped
+        if (ctx.chat.canContinue() && isFragmentChecked) {
             ctx.chat.clickContinue()
             Condition.wait({ !ctx.chat.canContinue() }, 350,4)
             return
@@ -84,6 +84,18 @@ class Main : PollingScript<ClientContext>(), PaintListener {
     override fun start() {
         println("Starting ${this.manifest.name}")
         ctx.properties["randomevents.disable"] = "true"
+
+        if (Inventory.contains("Dark essence fragments")) {
+            isFragmentChecked = false
+        }
+
+        if (!Inventory.contains(/* chisel */1755)) {
+            ctx.controller.stop()
+            Dialog.show(this.manifest.name,  "You need a chisel to use this script.")
+            return
+        }
+
+        taskList.add(CheckFragments(ctx))
         taskList.add(ChiselBlocks(ctx))
         taskList.add(ConvertBlocks(ctx))
         taskList.add(BindRunes(ctx))
